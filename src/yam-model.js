@@ -28,9 +28,14 @@ yam.model = (function() {
             return this.childModels[name];
         };
 
+        var getModelName = function() {
+            return this.name;
+        };
+
         return {
             addChildModel: addChildModel,
-            getChildModel: getChildModel
+            getChildModel: getChildModel,
+            getModelName: getModelName
         };
 
     })();

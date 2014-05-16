@@ -3,7 +3,7 @@
  *  - Creates a new order for a report
  *  - Acts as data model for the order creation wizard
  */
-var OrderLineService = (function() {
+var OrderLine = (function() {
 
     var variableMap = {
         "orderid": "orderId",
@@ -165,7 +165,7 @@ var OrderLineService = (function() {
     })();
 
     return yam.model.create({
-        "name": "OrderLineService",
+        "name": "OrderLineModel",
         "variableMap": variableMap,
         "protoFns": extraProtoFns
     });

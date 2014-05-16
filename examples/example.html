@@ -76,7 +76,7 @@
             "dcGroepName": "Algemene"
         };
 
-        var orderline = new OrderLineService(orderLineData);
+        var orderline = new OrderLineModel(orderLineData);
         var serviceData = orderline.getServiceData();
         debugger;
         orderline.getOrderLineReport()[0].setFileTextSelected(false);
