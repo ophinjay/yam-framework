@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>YAMF example</title>
+    <script src="../src/yamf.js"></script>
+    <script src="order.js"></script>
+    <script type="text/javascript">
+    (function() {
+        var orderLineData = {
+            "orderid": 17,
+            "version": null,
+            "theme": "Algemeen",
+            "scopebase": true,
+            "scopelegislation": false,
+            "scopeeconomicsandjustice": true,
+            "scopetechnics": true,
+            "status": "Te behandelen",
+            "ratingvalue": null,
+            "rating": null,
+            "ratingunits": null,
+            "selectedratingunit": null,
+            "advisetext": null,
+            "attachment": null,
+            "isReportTextModified": false,
+            "conclusiontext": null,
+            "orderLineReportView": [{
+                "reportid": null,
+                "orderid": 17,
+                "dcgroepid": 1,
+                "dcid": 1,
+                "version": null,
+                "sectionname": null,
+                "introtext": null,
+                "introattachment": null,
+                "maptext": null,
+                "mapattachment": null,
+                "metadatatext": null,
+                "metadataattachment": null,
+                "tabletext": null,
+                "tableattachment": null,
+                "filetext": null,
+                "fileattachment": null,
+                "attachment": null,
+                "isIntroTextSelected": null,
+                "isMetadataTextSelected": null,
+                "isTableTextSelected": null,
+                "isFileTextSelected": null
+            }, {
+                "reportid": null,
+                "orderid": 17,
+                "dcgroepid": 1,
+                "dcid": 2,
+                "version": null,
+                "sectionname": null,
+                "introtext": null,
+                "introattachment": null,
+                "maptext": null,
+                "mapattachment": null,
+                "metadatatext": null,
+                "metadataattachment": null,
+                "tabletext": null,
+                "tableattachment": null,
+                "filetext": null,
+                "fileattachment": null,
+                "attachment": null,
+                "isIntroTextSelected": null,
+                "isMetadataTextSelected": null,
+                "isTableTextSelected": null,
+                "isFileTextSelected": null
+            }],
+            "code": "1.01",
+            "dcgroepid": 1,
+            "dcid": 1,
+            "dcName": "Basisregistratie Adressen en Gebouwen",
+            "dcGroepName": "Algemene"
+        };
+
+        var orderline = new OrderLineService(orderLineData);
+        var serviceData = orderline.getServiceData();
+        debugger;
+        orderline.getOrderLineReport()[0].setFileTextSelected(false);
+        var isModelChanged = orderline.isModelChanged();
+    })();
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
