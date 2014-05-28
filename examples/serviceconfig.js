@@ -2,25 +2,30 @@ var restConfig = {
     "url": "/Controller",
     "dataType": "JSON",
     "type": "POST",
-    "modelServices": {
+    "async": true,
+    "servicegroups": {
         "OrderLineService": {
             "model": "OrderLineModel",
-            "params": {
+            "parameters": {
                 "OBJECT": "NotaryReport"
             },
             "services": {
                 "save": {
-                    'OPERATION': 'getOrderLinesDetails',
-                    'orderid': "~getOrderId",
-                    'dcgroepid': "~getPerformanceCardGroupId",
-                    'dcid': "~getPerformanceCardId"
+                    "parameters": {
+                        'OPERATION': 'getOrderLinesDetails',
+                        'orderid': "~getOrderId",
+                        'dcgroepid': "~getPerformanceCardGroupId",
+                        'dcid': "~getPerformanceCardId"
+                    }
                 },
                 "getLineDetails": {
-                    'OPERATION': 'updateOrderLines',
-                    'orderline': {
-                        "fn": "~getDataToUpdate",
-                        transformer: function(value) {
-                            return JSON.stringify(value);
+                    "parameters": {
+                        'OPERATION': 'updateOrderLines',
+                        'orderline': {
+                            "fn": "~getDataToUpdate",
+                            transformer: function(value) {
+                                return JSON.stringify(value);
+                            }
                         }
                     }
                 }

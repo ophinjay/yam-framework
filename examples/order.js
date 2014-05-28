@@ -116,10 +116,6 @@ var OrderLine = (function() {
         }
 
         var getLineDetails = function(successHandler, errorHandler) {
-            fetchLineDetails.call(this, successHandler, errorHandler);
-        };
-
-        function fetchLineDetails(successHandler, errorHandler) {
             var serviceObj = this;
             $.ajax({
                 url: "/Controller",
@@ -138,7 +134,7 @@ var OrderLine = (function() {
                 },
                 error: fortierra.utilities.Common.getServiceErrorHandler("Exception while fetching order line details from server.", errorHandler)
             });
-        }
+        };
 
         var save = function(successHandler, errorHandler) {
             var dataToUpdate = getDataToUpdate.call(this);
@@ -156,6 +152,7 @@ var OrderLine = (function() {
                 },
                 error: fortierra.utilities.Common.getServiceErrorHandler("Exception while saving order line details.", errorHandler)
             });
+
         };
 
         return {

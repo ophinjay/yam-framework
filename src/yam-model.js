@@ -2,6 +2,10 @@ if (!window["yam"]) {
     window["yam"] = {};
 }
 
+if (!window["yam"]["models"]) {
+    window["yam"]["models"] = {};
+}
+
 yam.model = (function() {
 
     var _model = function(inputObj) {
@@ -102,7 +106,7 @@ yam.model = (function() {
             protoObj[getterName] = getGetter(variableName, undefined, config["beforeValueGet"], config["beforeSyncGet"]);
             protoObj[setterName] = getSetter(variableName, undefined, config["afterValueSet"], config["beforeValueSet"]);
             if (config["type"] == "object" || config["type"] == "array") {
-                var childModel = oj.utilities.model.create(config);
+                var childModel = yam.model.create(config);
                 modelObj.addChildModel(i, childModel);
             }
         }
@@ -259,7 +263,14 @@ yam.model = (function() {
     return {
         create: function(inputObj) {
             var model = new _model(inputObj);
+            window["yam"]["models"][model.name] = model._constructor;
             return model._constructor;
+        },
+        isValidModel: function(modelName) {
+            return !!window["yam"]["models"][modelName];
+        },
+        getModelClass: function(modelName) {
+            return window["yam"]["models"][modelName];
         }
     };
 
