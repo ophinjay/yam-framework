@@ -22,7 +22,7 @@ var restConfig = {
                     "parameters": {
                         'OPERATION': 'updateOrderLines',
                         'orderline': {
-                            "fn": "~getDataToUpdate",
+                            "data": "~getDataToUpdate",
                             transformer: function(value) {
                                 return JSON.stringify(value);
                             }
@@ -33,3 +33,5 @@ var restConfig = {
         }
     }
 };
+
+yam.service.generate(restConfig);

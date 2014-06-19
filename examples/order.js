@@ -115,56 +115,17 @@ var OrderLine = (function() {
             return returnData;
         }
 
-        var getLineDetails = function(successHandler, errorHandler) {
-            var serviceObj = this;
-            $.ajax({
-                url: "/Controller",
-                type: "POST",
-                data: {
-                    'OBJECT': 'NotaryReport',
-                    'OPERATION': 'getOrderLinesDetails',
-                    'orderid': this.getOrderId(),
-                    'dcgroepid': this.getPerformanceCardGroupId(),
-                    'dcid': this.getPerformanceCardId()
-                },
-                dataType: "JSON",
-                success: function(data, textstatus) {
-                    parseServiceData.call(serviceObj, data["orderline"]);
-                    successHandler(serviceObj);
-                },
-                error: fortierra.utilities.Common.getServiceErrorHandler("Exception while fetching order line details from server.", errorHandler)
-            });
-        };
-
-        var save = function(successHandler, errorHandler) {
-            var dataToUpdate = getDataToUpdate.call(this);
-            $.ajax({
-                url: "/Controller",
-                type: "POST",
-                data: {
-                    'OBJECT': 'NotaryReport',
-                    'OPERATION': 'updateOrderLines',
-                    'orderline': JSON.stringify(dataToUpdate)
-                },
-                dataType: "JSON",
-                success: function(data, textstatus) {
-                    successHandler(data);
-                },
-                error: fortierra.utilities.Common.getServiceErrorHandler("Exception while saving order line details.", errorHandler)
-            });
-
-        };
-
         return {
-            getLineDetails: getLineDetails,
-            save: save
+            getDataToUpdate: getDataToUpdate
         };
+        
     })();
 
     return yam.model.create({
         "name": "OrderLineModel",
         "variableMap": variableMap,
-        "protoFns": extraProtoFns
+        "protoFns": extraProtoFns,
+        "services": "OrderLineService"
     });
 
 })();

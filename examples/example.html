@@ -5,8 +5,8 @@
     <title>YAMF example</title>
     <script src="../src/yam-model.js"></script>
     <script src="../src/yam-service.js"></script>
+    <script src="services.js"></script>
     <script src="order.js"></script>
-    <script src="serviceconfig.js"></script>
     <script type="text/javascript">
     (function() {
         var orderLineData = {
@@ -82,10 +82,8 @@
         var serviceData = orderline.getServiceData();
         orderline.getOrderLineReport()[0].setFileTextSelected(false);
         var isModelChanged = orderline.isModelChanged();
-
-        var services = yam.service.generate(restConfig);
-        var parameters = services.OrderLineService.save.getParameters();
         debugger;
+        orderline.save();
     })();
     </script>
 </head>

@@ -9,7 +9,7 @@ if (!window["yam"]["models"]) {
 yam.model = (function() {
 
     var _model = function(inputObj) {
-        if(!inputObj["name"] || inputObj["name"].constructor !== String) {
+        if (!inputObj["name"] || inputObj["name"].constructor !== String) {
             throw new Error("Please provide a valid string name for the model!!!");
         }
         this.name = inputObj["name"];
@@ -183,7 +183,7 @@ yam.model = (function() {
             } else if (config["type"] == "array") {
                 for (var j = 0; j < value.length; j++) {
                     isChanged = value[j].isModelChanged();
-                    if(isChanged) {
+                    if (isChanged) {
                         return true;
                     }
                 }
@@ -249,6 +249,7 @@ yam.model = (function() {
     }
 
     //Utilities
+
     function capitalize(s) {
         return s[0].toUpperCase() + s.slice(1);
     }
@@ -260,18 +261,54 @@ yam.model = (function() {
         };
     }
 
-    return {
-        create: function(inputObj) {
-            var model = new _model(inputObj);
-            window["yam"]["models"][model.name] = model._constructor;
-            return model._constructor;
-        },
-        isValidModel: function(modelName) {
-            return !!window["yam"]["models"][modelName];
-        },
-        getModelClass: function(modelName) {
-            return window["yam"]["models"][modelName];
+    //Library functions
+    var create = function(inputObj) {
+        var model = new _model(inputObj);
+        window["yam"]["models"][model.name] = model;
+        if(inputObj["services"]) {
+            this.attachServices(model.name, inputObj["services"]);
         }
+        return model._constructor;
+    };
+
+    var isValidModel = function(modelName) {
+        return !!window["yam"]["models"][modelName];
+    };
+
+    var getModelClass = function(modelName) {
+        return window["yam"]["models"][modelName];
+    };
+
+    var attachServices = function(modelName, serviceGroups) {
+        var arr = (serviceGroups.constructor === Array ? serviceGroups : [serviceGroups]);
+        var model = this.getModelClass(modelName);
+        if (!model) {
+            throw "Invalid model!!!";
+        } else {
+            for (var i = 0; i < arr.length; i++) {
+                var services = yam.service.getServices(arr[i]);
+                for (var j in services) {
+                    if (services[j].getModelName() !== model.name) {
+                        throw "Service " + j + " in service group " + arr[i] + " is not applicable for the model " + modelName;
+                    } else {
+                        model._constructor.prototype[j] = getTriggerFn(services[j]);
+                    }
+                }
+            }
+        }
+    };
+
+    function getTriggerFn(serviceObj) {
+        return function() {
+            serviceObj.trigger(this);
+        };
+    }
+
+    return {
+        "create": create,
+        "isValidModel": isValidModel,
+        "getModelClass": getModelClass,
+        "attachServices": attachServices
     };
 
 })();

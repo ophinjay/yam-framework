@@ -29,9 +29,6 @@ yam.service = (function() {
     function createClass(prototypeObj) {
         var genericService = function(inputObj, serviceGroup) {
             setIfDefined(inputObj, this, "serviceGroup");
-            if (inputObj["model"] && !yam.model.isValidModel(inputObj["model"])) {
-                throw new Error("The model - " + inputObj["model"] + " - provided for the service group - " + this.serviceGroup + " - has not been registered in the model directory!!!");
-            }
             setIfDefined(inputObj, this, "model");
             setIfDefined(inputObj, this, "url");
             setIfDefined(inputObj, this, "dataType");
@@ -51,7 +48,8 @@ yam.service = (function() {
     }
 
     function setIfDefined(src, target, property, defaultValue) {
-        target[property] = src[property] || defaultValue;
+        var result = src[property] || defaultValue;
+        result && (target[property] = result);
     }
 
     var servicePrototypeFns = (function() {
@@ -79,17 +77,17 @@ yam.service = (function() {
         };
 
         var getHeaders = function(dataObj) {
-            var config = compileObjectFromPrototypeTree.call(this, "headers", "getHeaders");
+            var config = compileObjectFromPrototypeTree.call(this, "headers");
             return resolveObject.call(this, config, dataObj);
         };
 
         var getParameters = function(dataObj) {
-            var config = compileObjectFromPrototypeTree.call(this, "parameters", "getParameters");
+            var config = compileObjectFromPrototypeTree.call(this, "parameters");
             return resolveObject.call(this, config, dataObj);
         };
 
         var getQueries = function(dataObj) {
-            var config = compileObjectFromPrototypeTree.call(this, "queries", "getQueries");
+            var config = compileObjectFromPrototypeTree.call(this, "queries");
             return resolveObject.call(this, config, dataObj);
         };
 
@@ -97,57 +95,70 @@ yam.service = (function() {
             return this.async;
         };
 
-        function compileObjectFromPrototypeTree(property, getter) {
-            var obj;
+        var getModelName = function() {
+            return this.model;
+        };
+
+        function compileObjectFromPrototypeTree(property) {
+            var config;
             if (this.parent) {
-                obj = this.parent[getter]();
+                config = arguments.callee.call(this.parent, property);
             }
             if (this.hasOwnProperty(property)) {
+                !config && (config = {});
                 var object = this[property];
                 if (object) {
                     for (var i in object) {
-                        obj[i] = object[i];
+                        config[i] = object[i];
                     }
                 }
             }
-            return obj;
+            return config;
         }
 
         function resolveObject(object, dataObj) {
-            dataObject = dataObj || this.model;
-            var isModel = dataObject && !this.model;
-            if(dataObject) {
-                for(var i in object) {
-                    object[i] = resolveProperty(object[i], dataObject, isModel);
+            if (object) {
+                dataObject = dataObj || this;
+                if (dataObject) {
+                    for (var i in object) {
+                        object[i] = resolveProperty(object[i], dataObject);
+                    }
                 }
             }
             return object;
         }
 
         function resolveUrl(url, dataObj) {
-            dataObject = dataObj || this.model;
-            var isModel = dataObject && !this.model;            
+            dataObject = dataObj || this;
             var parts = url.split("/");
             for (var i = 0; i < parts.length; i++) {
-                parts[i] = resolveProperty(parts[i], dataObject, isModel);
-            };
+                if (parts[i] !== "") {
+                    parts[i] = resolveProperty(parts[i], dataObject);
+                }
+            }
             return parts.join("/");
         }
 
-        function resolveProperty(prop, dataObj, isModel) {
-            if(/^~/.test(property)) {
+        function resolveProperty(prop, dataObj) {
+            if (prop.constuctor === Object) {
+                var transformer = prop["transformer"];
+                prop = prop["data"];
+            }
+            if (/^~/.test(prop)) {
                 var property = prop.slice(1);
                 var resolution = dataObj[property];
-                if(resolution.constuctor === Function) {
-                    prop = isModel ? dataObj.resolution(property) : resolution(property);
+                if (resolution.constructor === Function) {
+                    prop = dataObj[property]();
                 } else {
                     prop = resolution;
                 }
             }
+            transformer && transformer(prop);
             return prop;
         }
 
         var trigger = function(dataObj) {
+            debugger;
             var url = this.getUrl(dataObj) + this.getPath(dataObj);
             var queries = this.getQueries(dataObj);
             if (queries) {
@@ -159,14 +170,24 @@ yam.service = (function() {
             }
             var req = new XMLHttpRequest();
             req.responseType = this.getDataType();
-            req.open(this.getType(), url, this.isAsync());
+            var method = this.getType();
             var headers = this.getHeaders(dataObj);
-            if(headers) {
-                for(var i in headers) {
+            if (headers) {
+                for (i in headers) {
                     req.setRequestHeaders(i, headers[i]);
                 }
             }
-            req.send();
+            req.open(method, url, this.isAsync());
+            if (method === "POST") {
+                var parameters = this.getParameters(dataObj);
+                var formData = new FormData();
+                for(i in parameters) {
+                    formData.append(i, parameters[i]);
+                }
+                req.send(formData);
+            } else {
+                req.send();                
+            }
         };
 
         return {
@@ -178,13 +199,20 @@ yam.service = (function() {
             getQueries: getQueries,
             getHeaders: getHeaders,
             isAsync: isAsync,
-            trigger: trigger
+            trigger: trigger,
+            getModelName: getModelName
         };
 
     })();
 
     return {
-        generate: generate
+        generate: generate,
+        getServices: function(serviceGroup) {
+            return window["yam"]["services"][serviceGroup] || {};
+        },
+        getService: function(serviceGroup, service) {
+            return window["yam"]["services"][serviceGroup][service];
+        }
     };
 
 })();
