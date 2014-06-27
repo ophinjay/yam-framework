@@ -8,202 +8,194 @@ if (!window["yam"]["services"]) {
 
 yam.service = (function() {
 
+    var Service = (function() {
+        var service = function(configArr) {
+            this["parameters"] = {};
+            this["queries"] = {};
+            this["headers"] = {};
+            this["path"] = "";
+            for (var i = configArr.length - 1; i >= 0; i--) {
+                var config = configArr[i];
+                setSpecificConfig.call(this, config, "model");
+                setSpecificConfig.call(this, config, "dataType");
+                setSpecificConfig.call(this, config, "type");
+                setSpecificConfig.call(this, config, "async");
+                addToObject(this["parameters"], config["parameters"]);
+                addToObject(this["queries"], config["queries"]);
+                addToObject(this["headers"], config["headers"]);
+                config["path"] && (this["path"] += config["path"]);
+            }
+        };
+
+        function setSpecificConfig(config, property) {
+            var value = config[property];
+            if (!this[property] || isValid(value)) {
+                this[property] = value;
+            }
+        }
+
+        function addToObject(target, src) {
+            for (var i in src) {
+                target[i] = src[i];
+            }
+        }
+
+        function isValid(value) {
+            return value !== undefined && value !== null;
+        }
+
+        service.prototype = (function() {
+            var getUrl = function(dataObj) {
+                return resolveUrl(this.url, dataObj);
+            };
+
+            var getDataType = function() {
+                return this.dataType;
+            };
+
+            var getType = function() {
+                return this.type;
+            };
+
+            var getPath = function(dataObj) {
+                return resolveUrl(this.path, dataObj);
+            };
+
+            var getHeaders = function(dataObj) {
+                return resolveObject.call(this, this.headers, dataObj);
+            };
+
+            var getParameters = function(dataObj) {
+                return resolveObject.call(this, this.parameters, dataObj);
+            };
+
+            var getQueries = function(dataObj) {
+                return resolveObject.call(this, this.queries, dataObj);
+            };
+
+            var isAsync = function() {
+                return this.async;
+            };
+
+            var getModelName = function() {
+                return this.model;
+            };
+
+            function resolveObject(object, dataObj) {
+            	var hasContent = false;
+                if (object) {
+                    dataObject = dataObj || this;
+                    if (dataObject) {
+                        for (var i in object) {
+                            object[i] = resolveProperty(object[i], dataObject);
+                            hasContent = true;
+                        }
+                    }
+                }
+                return hasContent ? object : undefined;
+            }
+
+            function resolveUrl(url, dataObj) {
+                dataObject = dataObj || this;
+                var parts = url.split("/");
+                for (var i = 0; i < parts.length; i++) {
+                    if (parts[i] !== "") {
+                        parts[i] = resolveProperty(parts[i], dataObject);
+                    }
+                }
+                return parts.join("/");
+            }
+
+            function resolveProperty(prop, dataObj) {
+                if (prop.constuctor === Object) {
+                    var transformer = prop["transformer"];
+                    prop = prop["data"];
+                }
+                if (/^~/.test(prop)) {
+                    var property = prop.slice(1);
+                    var resolution = dataObj[property];
+                    if (resolution.constructor === Function) {
+                        prop = dataObj[property]();
+                    } else {
+                        prop = resolution;
+                    }
+                }
+                transformer && transformer(prop);
+                return prop;
+            }
+
+            var trigger = function(dataObj) {
+                var url = this.getPath(dataObj);
+                var queries = this.getQueries(dataObj);
+                if (queries) {
+                    var queryString = "?";
+                    for (var i in queries) {
+                        queryString += (i + "=" + queries[i]);
+                    }
+                    url += queryString;
+                }
+                var req = new XMLHttpRequest();
+                req.responseType = this.getDataType();
+                var method = this.getType();
+                var headers = this.getHeaders(dataObj);
+                if (headers) {
+                    for (i in headers) {
+                        req.setRequestHeaders(i, headers[i]);
+                    }
+                }
+                req.open(method, url, this.isAsync());
+                if (method === "POST") {
+                    var parameters = this.getParameters(dataObj);
+                    var formData = new FormData();
+                    for (i in parameters) {
+                        formData.append(i, parameters[i]);
+                    }
+                    req.send(formData);
+                } else {
+                    req.send();
+                }
+            };
+
+            return {
+                getUrl: getUrl,
+                getDataType: getDataType,
+                getType: getType,
+                getPath: getPath,
+                getParameters: getParameters,
+                getQueries: getQueries,
+                getHeaders: getHeaders,
+                isAsync: isAsync,
+                trigger: trigger,
+                getModelName: getModelName
+            };
+
+        })();
+
+        return service;
+    })();
+
     var generate = function(servicesConfig) {
-        var appLevelClass = createClass();
-        var appLevelObj = new appLevelClass(servicesConfig);
+        var appConfig = servicesConfig;
         for (var i in servicesConfig["servicegroups"]) {
-            var modelConfig = servicesConfig["servicegroups"][i];
-            var modelLevelClass = createClass(appLevelObj);
-            var modelLevelObj = new modelLevelClass(modelConfig);
+            var groupConfig = servicesConfig["servicegroups"][i];
             !yam.services[i] && (yam.services[i] = {});
-            for (var j in modelConfig["services"]) {
-                var serviceConfig = modelConfig["services"][j];
-                var serviceLevelClass = createClass(modelLevelObj);
-                var serviceLevelObj = new serviceLevelClass(serviceConfig);
-                yam.services[i][j] = serviceLevelObj;
+            if(!groupConfig["services"]["instance"] && !groupConfig["services"]["class"]) {
+            	yam.services[i] = generateServices(groupConfig["services"]);
+            } else {
+            	yam.services[i] = generateServices(groupConfig["services"]["instance"], groupConfig, appConfig);
+            	yam.services[i] = generateServices(groupConfig["services"]["class"], groupConfig, appConfig, yam.services[i]);
             }
         }
         return yam.services;
     };
 
-    function createClass(prototypeObj) {
-        var genericService = function(inputObj, serviceGroup) {
-            setIfDefined(inputObj, this, "serviceGroup");
-            setIfDefined(inputObj, this, "model");
-            setIfDefined(inputObj, this, "url");
-            setIfDefined(inputObj, this, "dataType");
-            setIfDefined(inputObj, this, "type");
-            setIfDefined(inputObj, this, "parameters", undefined);
-            setIfDefined(inputObj, this, "queries", undefined);
-            setIfDefined(inputObj, this, "headers", undefined);
-            setIfDefined(inputObj, this, "path", "");
-            setIfDefined(inputObj, this, "async", "");
-            this.parent = prototypeObj || undefined;
-        };
-
-        genericService.prototype = prototypeObj || servicePrototypeFns;
-        genericService.prototype.constuctor = genericService;
-
-        return genericService;
+    function generateServices(config, groupConfig, appConfig, returnObj) {
+    	returnObj = returnObj || {};
+        for (var i in config) {            
+            returnObj[i] = new Service([config[i], groupConfig, appConfig]);
+        }
+        return returnObj;
     }
-
-    function setIfDefined(src, target, property, defaultValue) {
-        var result = src[property] || defaultValue;
-        result && (target[property] = result);
-    }
-
-    var servicePrototypeFns = (function() {
-        var getUrl = function(dataObj) {
-            return resolveUrl(this.url, dataObj);
-        };
-
-        var getDataType = function() {
-            return this.dataType;
-        };
-
-        var getType = function() {
-            return this.type;
-        };
-
-        var getPath = function(dataObj) {
-            var path = "";
-            if (this.parent) {
-                path += this.parent.getPath();
-            }
-            if (this.hasOwnProperty("path")) {
-                path += this.path;
-            }
-            return resolveUrl(path, dataObj);
-        };
-
-        var getHeaders = function(dataObj) {
-            var config = compileObjectFromPrototypeTree.call(this, "headers");
-            return resolveObject.call(this, config, dataObj);
-        };
-
-        var getParameters = function(dataObj) {
-            var config = compileObjectFromPrototypeTree.call(this, "parameters");
-            return resolveObject.call(this, config, dataObj);
-        };
-
-        var getQueries = function(dataObj) {
-            var config = compileObjectFromPrototypeTree.call(this, "queries");
-            return resolveObject.call(this, config, dataObj);
-        };
-
-        var isAsync = function() {
-            return this.async;
-        };
-
-        var getModelName = function() {
-            return this.model;
-        };
-
-        function compileObjectFromPrototypeTree(property) {
-            var config;
-            if (this.parent) {
-                config = arguments.callee.call(this.parent, property);
-            }
-            if (this.hasOwnProperty(property)) {
-                !config && (config = {});
-                var object = this[property];
-                if (object) {
-                    for (var i in object) {
-                        config[i] = object[i];
-                    }
-                }
-            }
-            return config;
-        }
-
-        function resolveObject(object, dataObj) {
-            if (object) {
-                dataObject = dataObj || this;
-                if (dataObject) {
-                    for (var i in object) {
-                        object[i] = resolveProperty(object[i], dataObject);
-                    }
-                }
-            }
-            return object;
-        }
-
-        function resolveUrl(url, dataObj) {
-            dataObject = dataObj || this;
-            var parts = url.split("/");
-            for (var i = 0; i < parts.length; i++) {
-                if (parts[i] !== "") {
-                    parts[i] = resolveProperty(parts[i], dataObject);
-                }
-            }
-            return parts.join("/");
-        }
-
-        function resolveProperty(prop, dataObj) {
-            if (prop.constuctor === Object) {
-                var transformer = prop["transformer"];
-                prop = prop["data"];
-            }
-            if (/^~/.test(prop)) {
-                var property = prop.slice(1);
-                var resolution = dataObj[property];
-                if (resolution.constructor === Function) {
-                    prop = dataObj[property]();
-                } else {
-                    prop = resolution;
-                }
-            }
-            transformer && transformer(prop);
-            return prop;
-        }
-
-        var trigger = function(dataObj) {
-            debugger;
-            var url = this.getUrl(dataObj) + this.getPath(dataObj);
-            var queries = this.getQueries(dataObj);
-            if (queries) {
-                var queryString = "?";
-                for (var i in queries) {
-                    queryString += (i + "=" + queries[i]);
-                }
-                url += queryString;
-            }
-            var req = new XMLHttpRequest();
-            req.responseType = this.getDataType();
-            var method = this.getType();
-            var headers = this.getHeaders(dataObj);
-            if (headers) {
-                for (i in headers) {
-                    req.setRequestHeaders(i, headers[i]);
-                }
-            }
-            req.open(method, url, this.isAsync());
-            if (method === "POST") {
-                var parameters = this.getParameters(dataObj);
-                var formData = new FormData();
-                for(i in parameters) {
-                    formData.append(i, parameters[i]);
-                }
-                req.send(formData);
-            } else {
-                req.send();                
-            }
-        };
-
-        return {
-            getUrl: getUrl,
-            getDataType: getDataType,
-            getType: getType,
-            getPath: getPath,
-            getParameters: getParameters,
-            getQueries: getQueries,
-            getHeaders: getHeaders,
-            isAsync: isAsync,
-            trigger: trigger,
-            getModelName: getModelName
-        };
-
-    })();
 
     return {
         generate: generate,
