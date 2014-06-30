@@ -288,19 +288,29 @@ yam.model = (function() {
             for (var i = 0; i < arr.length; i++) {
                 var services = yam.service.getServices(arr[i]);
                 for (var j in services) {
-                    if (services[j].getModelName() !== model.name) {
+                    var service = services[j];
+                    var serviceType = service.getServiceType();
+                    if (service.getModelName() !== model.name) {
                         throw "Service " + j + " in service group " + arr[i] + " is not applicable for the model " + modelName;
-                    } else {
-                        model._constructor.prototype[j] = getTriggerFn(services[j]);
+                    } else if (serviceType === "instance") {
+                        model._constructor.prototype[j] = getProtoTriggerFn(service);
+                    } else if(serviceType === "class") {
+                        model._constructor[j] = getClassTriggerFn(service);
                     }
                 }
             }
         }
     };
 
-    function getTriggerFn(serviceObj) {
+    function getProtoTriggerFn(serviceObj) {
         return function() {
             serviceObj.trigger(this);
+        };
+    }
+
+    function getClassTriggerFn(serviceObj) {
+        return function(dataObj) {
+            serviceObj.trigger(dataObj);
         };
     }
 

@@ -9,7 +9,8 @@ if (!window["yam"]["services"]) {
 yam.service = (function() {
 
     var Service = (function() {
-        var service = function(configArr) {
+        var service = function(configArr, type) {
+        	this.serviceType = type;
             this["parameters"] = {};
             this["queries"] = {};
             this["headers"] = {};
@@ -79,6 +80,10 @@ yam.service = (function() {
 
             var getModelName = function() {
                 return this.model;
+            };
+
+            var getServiceType = function() {
+            	return this.serviceType;
             };
 
             function resolveObject(object, dataObj) {
@@ -164,6 +169,7 @@ yam.service = (function() {
                 getParameters: getParameters,
                 getQueries: getQueries,
                 getHeaders: getHeaders,
+                getServiceType: getServiceType,
                 isAsync: isAsync,
                 trigger: trigger,
                 getModelName: getModelName
@@ -182,17 +188,17 @@ yam.service = (function() {
             if(!groupConfig["services"]["instance"] && !groupConfig["services"]["class"]) {
             	yam.services[i] = generateServices(groupConfig["services"]);
             } else {
-            	yam.services[i] = generateServices(groupConfig["services"]["instance"], groupConfig, appConfig);
-            	yam.services[i] = generateServices(groupConfig["services"]["class"], groupConfig, appConfig, yam.services[i]);
+            	yam.services[i] = generateServices(groupConfig["services"]["instance"], "instance", groupConfig, appConfig);
+            	yam.services[i] = generateServices(groupConfig["services"]["class"], "class", groupConfig, appConfig, yam.services[i]);
             }
         }
         return yam.services;
     };
 
-    function generateServices(config, groupConfig, appConfig, returnObj) {
+    function generateServices(config, type, groupConfig, appConfig, returnObj) {
     	returnObj = returnObj || {};
         for (var i in config) {            
-            returnObj[i] = new Service([config[i], groupConfig, appConfig]);
+            returnObj[i] = new Service([config[i], groupConfig, appConfig], type);
         }
         return returnObj;
     }
