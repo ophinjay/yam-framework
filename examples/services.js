@@ -30,6 +30,16 @@ var restConfig = {
                             }
                         }
                     }
+                },
+                "class": {
+                    "test": {
+                        "parameters": {
+                            'OPERATION': 'getOrderLinesDetails',
+                            'orderid': "~getOrderId",
+                            'dcgroepid': "~getPerformanceCardGroupId",
+                            'dcid': "~getPerformanceCardId"
+                        }
+                    }
                 }
             }
         }
