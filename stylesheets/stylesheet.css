@@ -421,3 +421,41 @@ Small Device Styles
   }
 
 }
+
+/** Custom styles **/
+.content_table {
+  width: 100%;
+  border: 0px;
+}
+
+.content_table td{
+  padding: 0px;
+  border: 0px;
+}
+.content_table #main_content {
+  margin: 0px auto 0px 0px;
+}
+.content_table #menu {
+  max-width: 150px;
+  margin: 0px 0px 0px auto;
+}
+
+.content_table #menu div{
+  color: #222222;
+  padding: 0px 5px 0px 5px;
+  border-radius: 3px;
+}
+
+.content_table #menu div:hover {
+  color: #0090FF;
+  cursor: pointer;
+}
+
+.content_table #menu div.selected {
+  color: #ffffff;
+  background-color: #0090FF;
+}
+
+.hide {
+  display: none;
+}
