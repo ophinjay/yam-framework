@@ -47,9 +47,10 @@ yam.model = (function() {
     function internalConstructor() {
         var args = [].slice.call(arguments, 0);
         this._model = args.pop();
-        var dataPosition = 0;
+        /*var dataPosition = 0;
         this._model.config && this._model.config["dataPosition"] && (dataPosition = this._model.config["dataPosition"]);
-        var data = args[dataPosition];
+        var data = args[dataPosition];*/
+        var data = args[0];
         this._model["userConstructor"] && this._model["userConstructor"].apply(this, args);
         data && this.setOriginalData(data);
     }
