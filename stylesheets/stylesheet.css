@@ -56,10 +56,10 @@ body {
   font-family: 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-y: scroll;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin: 10px 0;
   font-weight: 700;
   color:#222222;
   font-family: 'Lucida Grande', 'Calibri', Helvetica, Arial, sans-serif;
@@ -72,7 +72,6 @@ h1 {
 }
 
 h2 {
-  padding-bottom: 10px;
   font-size: 32px;
   background: url('../images/bg_hr.png') repeat-x bottom;
 }
@@ -94,7 +93,7 @@ h6 {
 }
 
 p {
-  margin: 10px 0 15px 0;
+  margin: 5px 0 15px 0;
 }
 
 footer p {
@@ -265,7 +264,7 @@ Full-Width Styles
 .inner {
   position: relative;
   max-width: 640px;
-  padding: 20px 10px;
+  padding: 0px 10px;
   margin: 0 auto;
 }
 
@@ -293,6 +292,8 @@ Full-Width Styles
   background: linear-gradient(top, #373737, #212121);
   position: fixed;
   top: 0px;
+  border-bottom: 50px solid #f2f2f2;
+  z-index: 10;
 }
 
 #header_wrap .inner {
@@ -357,7 +358,8 @@ Full-Width Styles
 #main_content_wrap {
   background: #f2f2f2;
   border-top: 1px solid #111;
-  margin-top: 209px;
+  margin-top: 179px;
+  margin-bottom: 63px;
 }
 
 #main_content {
@@ -368,6 +370,7 @@ Full-Width Styles
   background: #212121;
   bottom: 0px;
   position: fixed;
+  border-top: 10px solid #f2f2f2;
 }
 
 
@@ -427,39 +430,37 @@ Small Device Styles
 }
 
 /** Custom styles **/
-.content_table {
-  width: 100%;
-  border: 0px;
+
+#menu {
+  position: fixed;
+  margin-top: 50px;
+  left: 15%;
 }
 
-.content_table td{
-  padding: 0px;
-  border: 0px;
-}
-.content_table #main_content {
-  margin: 0px auto 0px 0px;
-}
-.content_table #menu {
-  max-width: 150px;
-  margin: 0px 0px 0px auto;
+#menu {
+  min-width: 150px;
 }
 
-.content_table #menu div{
+#menu div{
   color: #222222;
   padding: 0px 5px 0px 5px;
   border-radius: 3px;
 }
 
-.content_table #menu div:hover {
+#menu div:hover {
   color: #0090FF;
   cursor: pointer;
 }
 
-.content_table #menu div.selected {
+#menu div.selected{
   color: #ffffff;
   background-color: #0090FF;
 }
 
 .hide {
   display: none;
+}
+
+.inner > p {
+  margin: 5px 0 0px 0;
 }

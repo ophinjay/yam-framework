@@ -28,55 +28,42 @@
 
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
-        <table class="content_table">
-            <tbody>
-                <tr>
-                    <td style="width: 30%">
-                        <ul id="menu" class="inner">
-                            <div section="introduction" class="selected">Introduction</div>
-                            <div section="model">Model</div>
-                            <div section="services">Services</div>
-                        </ul>
-                    </td>
-                    <td style="width: 70%">
-                        <section id="main_content" class="inner">
-                            <div section="introduction">
-                                <h3>Introduction</h3>
-                                <p>
-                                    There are a number of JavaScript frameworks like that eases the task of UI development. However, most of these frameworks have functionalities revolving around the creation of views, wiring views together with event handling and binding these views with data. While the multitude of features supported by these frameworks are sufficient for development of websites, when it comes to single page enterprise applications, the data itself is the most important entity.
-                                </p>                                
-                                <p>
-                                    YAMF aims at providing a framework to define data entities like Orders, Customers etc as JavaScript classes along with their related services. Suppose your application has a Customers table in the DB. A convenient way of connecting to this DB, in the backend application layer, would be to use a persistence provider like Hibernate and map the entire DB structure as entity classes. Service classes may be then written based on these model classes that tends to other services related to this data.
-
-                                </p>
-                                <p>
-                                    YAMF does the following
-                                    <ul>
-                                        <li>Define every functional entity as a seperate class</li>
-                                        <li>Automatically</li>
-                                        <li></li>
-                                        <li></li>
-                                    </ul>
-                                </p>
-                            </div>
-                            <div section="model" class="hide">
-                                <h3>Model</h3>
-                            </div>
-                            <div section="services" class="hide">
-                                <h3>Services</h3>
-                            </div>
-                        </section>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
+        <aside id="menu">
+            <ul class="inner">
+                <div section="introduction" class="selected">Introduction
+                </div>
+                <div section="model">Model
+                </div>
+                <div section="services">Services
+                </div>
+            </ul>
+        </aside>
+        <section id="main_content" class="inner">
+            <div section="introduction">
+                <h3>Introduction</h3>
+                <p>
+                    There are a number of JavaScript frameworks that eases the task of UI development. However, most of these frameworks have functionalities revolving around the creation of views, wiring views together with event handling and binding these views with data. While the multitude of features supported by these frameworks are sufficient for development of websites, when it comes to single page enterprise applications, the data itself is the most important entity.
+                </p>
+                <p>
+                    Suppose your application has a customers table in the DB. A convenient way of connecting to this DB, in the backend application layer, would be to use a persistence provider like Hibernate and map the entire DB structure as entity classes. Services related to a customer, like retrieving sales orders of the customer, can be implemented as a service class that accepts a customer model instance as its input. YAMF helps a frontend engineer achieve the same structure in JavaScript.
+                </p>
+                <p>
+                    YAMF aims at providing a framework to define data entities, like customers, as JavaScript classes along with their related services. Customer can be registered as a model, which will will provide a Customer class that can be used to create instances of customers. Services related to a single customer can be registered as functions on the prototype of this class. Functions that are more suited for the customer class as a whole rather than an individual customer, like fetching all active customers, can be defined as static methods available directly on the Customer class.
+                </p>
+            </div>
+            <div section="model" class="hide">
+                <h3>Model</h3>
+            </div>
+            <div section="services" class="hide">
+                <h3>Services</h3>
+            </div>
+        </section>
     </div>
 
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
         <footer class="inner">
-            <p class="copyright">YAM Framework is maintained by <a href="https://github.com/ophinjay">ophinjay</a>
+            <p class="copyright">YAMF is maintained by <a href="https://github.com/ophinjay">ophinjay</a>
             </p>
             <p>Published with <a href="http://pages.github.com">GitHub Pages</a>
             </p>
