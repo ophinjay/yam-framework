@@ -1,4 +1,4 @@
-var restConfig = {
+var serviceConfig = {
     "path": "/Controller",
     "dataType": "JSON",
     "type": "POST",
@@ -46,4 +46,4 @@ var restConfig = {
     }
 };
 
-yam.service.generate(restConfig);
+yam.service.generate(serviceConfig);

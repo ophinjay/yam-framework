@@ -27,11 +27,14 @@
     </div>
     <aside id="menu">
         <ul class="inner">
-            <div section="introduction" class="selected">Introduction
+            <div section="introduction" class="selected">
+                Introduction
             </div>
-            <div section="model">Model
+            <div section="model">
+                Model
             </div>
-            <div section="services">Services
+            <div section="services">
+                Services
             </div>
         </ul>
     </aside>
@@ -53,6 +56,40 @@
             </div>
             <div section="model" class="hide">
                 <h3>Model</h3>
+                <p>
+                    Model is the representation of a functional entity in the application, like Customers. YAMF models help the user to represent the data entity along with all its related functionality as a JavaScript class.
+                </p>
+                <h4>Usecase</h4>
+                <p>
+                    The following discussions will be based on the usecase described below. There is a Customer table in the backend with the following fields
+                </p>
+                <ul>
+                    <li>ID - Number</li>
+                    <li>First Name - Text</li>
+                    <li>Last Name - Text</li>
+                    <li>Domains - Multiple value field, whose data is available in CSV format</li>
+                </ul>
+                <p>
+                    In this tutorial we try to represent this Customer table as a class in frontend. The input to be passed during creation of the instance is assumed to be a JSON object with the fields - <code>id</code>, <code>firstname</code>, <code>lastname</code> and <code>domains</code>. The following features are expected for the Customer class:
+                </p>
+                <ol>
+                    <li>Getters and setters for every field, like <code>getCustomerId</code>, <code>setDomains</code> etc</li>
+                    <ul>
+                        <li>The CSV data in <code>domains</code> should be available as an array in when accessed via its getter</li>
+                    </ul>
+                    <li>A virtual field <code>fullName</code> that concatenates the first and last names</li>
+                    <ul>
+                        <li>Getters and setters should be available for this field</li>
+                        <li>Any change to first or last name should be reflected while retrieving <code>fullName</code></li>
+                        <li>Any attempt to set full name should make appropriate changes in first and last name</li>
+                    </ul>                    
+                    <li>It should be possible to retrieve the current state of the instance in the same format in which the input was provided</li>
+                    <ul>
+                        <li>When data is retrieved, the field <code>domains</code> should have its value in CSV format</li>
+                    </ul>
+                </ol>
+                <p>In the following sections, we'll try to achieve this functionality using YAMF</p>
+                <h4>Usecase</h4>
             </div>
             <div section="services" class="hide">
                 <h3>Services</h3>

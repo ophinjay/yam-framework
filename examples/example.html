@@ -78,10 +78,10 @@
             "dcGroepName": "Algemene"
         };
 
-        var orderline = new OrderLine(orderLineData);
-        var serviceData = orderline.getServiceData();
+        var orderline = new OrderLine(orderLineData, 1);
+        var serviceData = orderline.$getData();
         orderline.getOrderLineReport()[0].setFileTextSelected(false);
-        var isModelChanged = orderline.isModelChanged();
+        var isModelChanged = orderline.$isModelChanged();
         debugger;
         orderline.save();
     })();

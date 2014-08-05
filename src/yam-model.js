@@ -47,12 +47,13 @@ yam.model = (function() {
     function internalConstructor() {
         var args = [].slice.call(arguments, 0);
         this._model = args.pop();
-        /*var dataPosition = 0;
-        this._model.config && this._model.config["dataPosition"] && (dataPosition = this._model.config["dataPosition"]);
-        var data = args[dataPosition];*/
-        var data = args[0];
-        this._model["userConstructor"] && this._model["userConstructor"].apply(this, args);
-        data && this.setOriginalData(data);
+        if(this._model["userConstructor"]) {
+            var data = this._model["userConstructor"].apply(this, args);
+        }
+        if(!data) {
+            data = args[0];
+        }
+        data && this.$setOriginalData(data);
     }
 
     function syncServiceToModel(serviceData, modelObj) {
@@ -64,7 +65,7 @@ yam.model = (function() {
                 if (config["type"] !== "object" && config["type"] !== "array") {
                     modelObj[setterName](serviceData[i]);
                 } else {
-                    var childModel = modelObj.getChildModel(i);
+                    var childModel = modelObj.$getChildModel(i);
                     if (config["type"] == "object") {
                         var value = new childModel(serviceData[i]);
                     } else {
@@ -83,11 +84,11 @@ yam.model = (function() {
         var variableMap = modelObj["variableMap"];
         var extraProtoFns = modelObj["extraProtoFns"];
         protoObj = addAccessors(modelObj, protoObj);
-        protoObj["getServiceData"] = syncModelToService;
-        protoObj["getOriginalData"] = getOriginalData;
-        protoObj["setOriginalData"] = setOriginalData;
-        protoObj["isModelChanged"] = isModelChanged;
-        protoObj["getChildModel"] = getChildModel;
+        protoObj["$getData"] = syncModelToService;
+        protoObj["$getOriginalData"] = getOriginalData;
+        protoObj["$setOriginalData"] = setOriginalData;
+        protoObj["$isModelChanged"] = isModelChanged;
+        protoObj["$getChildModel"] = getChildModel;
         if (extraProtoFns) {
             for (var i in extraProtoFns) {
                 protoObj[i] = extraProtoFns[i];
@@ -104,8 +105,8 @@ yam.model = (function() {
             var variableName = config["name"] || config;
             var getterName = getGetterName(variableName, config["type"]);
             var setterName = getSetterName(variableName);
-            protoObj[getterName] = getGetter(variableName, undefined, config["beforeValueGet"], config["beforeSyncGet"]);
-            protoObj[setterName] = getSetter(variableName, undefined, config["afterValueSet"], config["beforeValueSet"]);
+            protoObj[getterName] = getGetter(variableName, undefined, config["beforeGet"], config["beforeGetDataCall"]);
+            protoObj[setterName] = getSetter(variableName, undefined, config["afterDataBind"], config["beforeDataBind"]);
             if (config["type"] == "object" || config["type"] == "array") {
                 var childModel = yam.model.create(config);
                 modelObj.addChildModel(i, childModel);
@@ -119,12 +120,12 @@ yam.model = (function() {
     }
 
     function getOriginalData() {
-        return this["originalData"];
+        return this["_originalData"];
     }
 
     function setOriginalData(value) {
         syncServiceToModel(value, this);
-        this["originalData"] = value;
+        this["_originalData"] = value;
     }
 
     function syncModelToService(filterMap) {
@@ -141,11 +142,11 @@ yam.model = (function() {
                 var getterName = getGetterName(variableName, config["type"]);
                 var getterValue = this[getterName](true);
                 if (config["type"] == "object") {
-                    var value = getterValue.getServiceData();
+                    var value = getterValue.$getData();
                 } else if (config["type"] == "array") {
                     value = [];
                     for (var j = 0; j < getterValue.length; j++) {
-                        value.push(getterValue[j].getServiceData());
+                        value.push(getterValue[j].$getData());
                     }
                 } else {
                     value = getterValue;
@@ -172,7 +173,7 @@ yam.model = (function() {
 
     function isModelChanged() {
         var isChanged = false;
-        var originalData = this.getOriginalData();
+        var originalData = this.$getOriginalData();
         var varMap = this["_model"]["variableMap"];
         for (var i in varMap) {
             var config = varMap[i];
@@ -180,10 +181,10 @@ yam.model = (function() {
             var getterName = getGetterName(variableName, config["type"]);
             var value = this[getterName](true);
             if (config["type"] == "object") {
-                isChanged = value.isModelChanged();
+                isChanged = value.$isModelChanged();
             } else if (config["type"] == "array") {
                 for (var j = 0; j < value.length; j++) {
-                    isChanged = value[j].isModelChanged();
+                    isChanged = value[j].$isModelChanged();
                     if (isChanged) {
                         return true;
                     }
@@ -210,14 +211,14 @@ yam.model = (function() {
         return fnPrefix + fnSuffix;
     }
 
-    function getSetter(variableName, innerObjFn, afterValueSetFn, beforeValueSetFn) {
+    function getSetter(variableName, innerObjFn, afterDataBindFn, beforeDataBindFn) {
         return function(value) {
-            if (beforeValueSetFn) {
-                if (beforeValueSetFn.constructor === Function) {
-                    value = beforeValueSetFn.call(this, value, variableName);
-                } else if (beforeValueSetFn.constructor === Array) {
-                    for (var i = 0; i < beforeValueSetFn.length; i++) {
-                        value = beforeValueSetFn[i].call(this, value, variableName);
+            if (beforeDataBindFn) {
+                if (beforeDataBindFn.constructor === Function) {
+                    value = beforeDataBindFn.call(this, value, variableName);
+                } else if (beforeDataBindFn.constructor === Array) {
+                    for (var i = 0; i < beforeDataBindFn.length; i++) {
+                        value = beforeDataBindFn[i].call(this, value, variableName);
                     }
                 }
             }
@@ -227,11 +228,11 @@ yam.model = (function() {
             } else {
                 this[variableName] = value;
             }
-            afterValueSetFn && afterValueSetFn.call(this, value, variableName);
+            afterDataBindFn && afterDataBindFn.call(this, value, variableName);
         };
     }
 
-    function getGetter(variableName, innerObjFn, beforeValueGetFn, beforeSyncGetFn) {
+    function getGetter(variableName, innerObjFn, beforeGetFn, beforeSyncGetFn) {
         return function(isCalledWhileSync) {
             var value;
             if (innerObjFn) {
@@ -239,8 +240,8 @@ yam.model = (function() {
                 value = innerObj[variableName];
             }
             value = this[variableName];
-            if (!isCalledWhileSync && beforeValueGetFn) {
-                value = beforeValueGetFn.call(this, value, variableName);
+            if (!isCalledWhileSync && beforeGetFn) {
+                value = beforeGetFn.call(this, value, variableName);
                 !value && (value = this[variableName]);
             } else if (isCalledWhileSync && beforeSyncGetFn) {
                 value = beforeSyncGetFn.call(this, value, variableName);

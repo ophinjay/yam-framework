@@ -41,8 +41,8 @@ var OrderLine = (function() {
         "dcGroepName": "performanceCardGroupName",
         "ratingunits": {
             "name": "ratingUnits",
-            "beforeValueSet": parseRatings,
-            "beforeSyncGet": ratingsArrayToString
+            "beforeDataBind": parseRatings,
+            "beforeGetDataCall": ratingsArrayToString
         },
         "selectedratingunit": "selectedRatingUnit",
         "code": "dcCode",
@@ -125,7 +125,10 @@ var OrderLine = (function() {
         "name": "OrderLineModel",
         "variableMap": variableMap,
         "protoFns": extraProtoFns,
-        "services": "OrderLineService"
+        "services": "OrderLineService",
+        constructor: function(data, orderId) {
+            debugger;
+        }
     });
 
 })();
