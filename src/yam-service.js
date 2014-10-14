@@ -6,11 +6,15 @@ if (!window["yam"]["services"]) {
     window["yam"]["services"] = {};
 }
 
+if (!window["yam"]["utilities"]) {
+    window["yam"]["utilities"] = {};
+}
+
 yam.service = (function() {
 
     var Service = (function() {
         var service = function(configArr, type) {
-        	this.serviceType = type;
+            this.serviceType = type;
             this["parameters"] = {};
             this["queries"] = {};
             this["headers"] = {};
@@ -83,11 +87,11 @@ yam.service = (function() {
             };
 
             var getServiceType = function() {
-            	return this.serviceType;
+                return this.serviceType;
             };
 
             function resolveObject(object, dataObj) {
-            	var hasContent = false;
+                var hasContent = false;
                 if (object) {
                     dataObject = dataObj || this;
                     if (dataObject) {
@@ -149,6 +153,9 @@ yam.service = (function() {
                     }
                 }
                 req.open(method, url, this.isAsync());
+                req.onload(function(eventObject) {
+                    // body...
+                })
                 if (method === "POST") {
                     var parameters = this.getParameters(dataObj);
                     var formData = new FormData();
@@ -159,6 +166,7 @@ yam.service = (function() {
                 } else {
                     req.send();
                 }
+                return new yam.utilities.Defer();
             };
 
             return {
@@ -185,19 +193,19 @@ yam.service = (function() {
         for (var i in servicesConfig["servicegroups"]) {
             var groupConfig = servicesConfig["servicegroups"][i];
             !yam.services[i] && (yam.services[i] = {});
-            if(!groupConfig["services"]["instance"] && !groupConfig["services"]["class"]) {
-            	yam.services[i] = generateServices(groupConfig["services"]);
+            if (!groupConfig["services"]["instance"] && !groupConfig["services"]["class"]) {
+                yam.services[i] = generateServices(groupConfig["services"]);
             } else {
-            	yam.services[i] = generateServices(groupConfig["services"]["instance"], "instance", groupConfig, appConfig);
-            	yam.services[i] = generateServices(groupConfig["services"]["class"], "class", groupConfig, appConfig, yam.services[i]);
+                yam.services[i] = generateServices(groupConfig["services"]["instance"], "instance", groupConfig, appConfig);
+                yam.services[i] = generateServices(groupConfig["services"]["class"], "class", groupConfig, appConfig, yam.services[i]);
             }
         }
         return yam.services;
     };
 
     function generateServices(config, type, groupConfig, appConfig, returnObj) {
-    	returnObj = returnObj || {};
-        for (var i in config) {            
+        returnObj = returnObj || {};
+        for (var i in config) {
             returnObj[i] = new Service([config[i], groupConfig, appConfig], type);
         }
         return returnObj;
@@ -211,6 +219,60 @@ yam.service = (function() {
         getService: function(serviceGroup, service) {
             return window["yam"]["services"][serviceGroup][service];
         }
+    };
+
+})();
+
+yam.utilities = (function() {
+
+    var Promise = function() {
+        this.successHandlers = [];
+        this.errorHandlers = [];
+    };
+
+    Promise.prototype = {
+        success: function(fn) {
+            this.successHandlers.push(fn);
+            if (this.data && this.isResolved) {
+                setTimeout(fn(data), 0);
+            }
+            return this;
+        },
+        error: function(fn) {
+            this.errorHandlers.push(fn);
+            if (this.data && !this.isResolved) {
+                setTimeout(fn(data), 0);
+            }
+            return this;
+        }
+    };
+
+    function setPromiseResolution(promise, data, isResolved) {
+        $commons.createReadOnlyProperty(promise, "data", data);
+        $commons.createReadOnlyProperty(promise, "isResolved", isResolved);
+    };
+
+    var Defer = function() {
+        this.promise = new Promise();
+    };
+
+    Defer.prototype = {
+        resolve: function(data) {
+            this.promise.successHandlers.forEach(function(successHandler) {
+                setTimeout(successHandler(data), 0);
+            });
+            setPromiseResolution(this.promise, data, true);
+        },
+        reject: function(data) {
+            this.promise.errorHandlers.forEach(function(errorHandler) {
+                setTimeout(errorHandler(data), 0);
+            });
+            setPromiseResolution(this.promise, data, false);
+        }
+    };
+
+    return {
+        Defer: Defer
     };
 
 })();
