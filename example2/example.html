@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>YAMF example</title>
+    <script src="../src/yam-model.js"></script>
+    <script src="../src/yam-service.js"></script>
+    <script src="customer.js"></script>
+    <script type="text/javascript">
+    (function() {
+        var customerData = {
+            "id": "10018",
+            "firstname": "Jophin",
+            "lastname": "Joseph",
+            "domains": "1,2,3,4,5"
+        };
+
+        var customer = new Customer(customerData);
+        console.log(customer.getFullName());
+        customer.setFirstName("Darshan");
+        console.log(customer.getFirstName());
+        console.log(customer.getFullName());
+        customer.setLastName("Raj");
+        console.log(customer.getLastName());
+        console.log(customer.getFullName());
+        console.log(customer.getDomains());
+        console.log(customer.$getData());
+        console.log(customer.$getOriginalData());
+        console.log(customer.$isModelChanged());
+    })();
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

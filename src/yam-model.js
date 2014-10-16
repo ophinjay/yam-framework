@@ -23,7 +23,6 @@ yam.model = (function() {
     };
 
     _model.prototype = (function() {
-
         var addChildModel = function(name, model) {
             this.childModels[name] = model;
         };
@@ -41,18 +40,52 @@ yam.model = (function() {
             getChildModel: getChildModel,
             getModelName: getModelName
         };
+    })();
 
+    var _callstack = function() {
+        this.set = {};
+        this.stack = [];
+    };
+
+    _callstack.prototype = (function() {
+        var push = function(fnName) {
+            this.stack.push(fnName);
+            if (!this.set[fnName]) {
+                this.set[fnName] = true;
+            } else {
+                var stackStr = this.stack.join(" -> ");
+                this.reset();
+                throw new Error("Infinite loop!!\nStack trace: " + stackStr);
+            }
+        };
+
+        var pop = function() {
+            var fnName = this.stack.pop();
+            this.set[fnName] = false;
+        };
+
+        var reset = function() {
+            this.set = {};
+            this.stack = [];
+        };
+
+        return {
+            push: push,
+            pop: pop,
+            reset: reset
+        };
     })();
 
     function internalConstructor() {
         var args = [].slice.call(arguments, 0);
         this._model = args.pop();
-        if(this._model["userConstructor"]) {
+        if (this._model["userConstructor"]) {
             var data = this._model["userConstructor"].apply(this, args);
         }
-        if(!data) {
+        if (!data) {
             data = args[0];
         }
+        this.callRegister = new _callstack();
         data && this.$setOriginalData(data);
     }
 
@@ -105,8 +138,8 @@ yam.model = (function() {
             var variableName = config["name"] || config;
             var getterName = getGetterName(variableName, config["type"]);
             var setterName = getSetterName(variableName);
-            protoObj[getterName] = getGetter(variableName, undefined, config["beforeGet"], config["beforeGetDataCall"]);
-            protoObj[setterName] = getSetter(variableName, undefined, config["afterDataBind"], config["beforeDataBind"]);
+            protoObj[getterName] = getGetter(variableName, config);
+            protoObj[setterName] = getSetter(variableName, config);
             if (config["type"] == "object" || config["type"] == "array") {
                 var childModel = yam.model.create(config);
                 modelObj.addChildModel(i, childModel);
@@ -211,8 +244,11 @@ yam.model = (function() {
         return fnPrefix + fnSuffix;
     }
 
-    function getSetter(variableName, innerObjFn, afterDataBindFn, beforeDataBindFn) {
+    function getSetter(variableName, config) {
+        var afterDataBindFn = config["afterDataBind"];
+        var beforeDataBindFn = config["beforeDataBind"];
         return function(value) {
+            this.callRegister.push(getSetterName(variableName));
             if (beforeDataBindFn) {
                 if (beforeDataBindFn.constructor === Function) {
                     value = beforeDataBindFn.call(this, value, variableName);
@@ -222,23 +258,19 @@ yam.model = (function() {
                     }
                 }
             }
-            if (innerObjFn) {
-                var innerObj = this[innerObjFn]();
-                innerObj && (innerObj[variableName] = value);
-            } else {
-                this[variableName] = value;
-            }
+            this[variableName] = value;
             afterDataBindFn && afterDataBindFn.call(this, value, variableName);
+            this.callRegister.pop();
         };
     }
 
-    function getGetter(variableName, innerObjFn, beforeGetFn, beforeSyncGetFn) {
+    function getGetter(variableName, config) {
+        var beforeGetFn = config["beforeGet"];
+        var beforeSyncGetFn = config["beforeGetDataCall"];
+        var type = config["type"];
         return function(isCalledWhileSync) {
             var value;
-            if (innerObjFn) {
-                var innerObj = this[innerObjFn]();
-                value = innerObj[variableName];
-            }
+            this.callRegister.push(getGetterName(variableName, type));
             value = this[variableName];
             if (!isCalledWhileSync && beforeGetFn) {
                 value = beforeGetFn.call(this, value, variableName);
@@ -246,6 +278,7 @@ yam.model = (function() {
             } else if (isCalledWhileSync && beforeSyncGetFn) {
                 value = beforeSyncGetFn.call(this, value, variableName);
             }
+            this.callRegister.pop();
             return value;
         };
     }
@@ -267,7 +300,7 @@ yam.model = (function() {
     var create = function(inputObj) {
         var model = new _model(inputObj);
         window["yam"]["models"][model.name] = model;
-        if(inputObj["services"]) {
+        if (inputObj["services"]) {
             this.attachServices(model.name, inputObj["services"]);
         }
         return model._constructor;
@@ -296,7 +329,7 @@ yam.model = (function() {
                         throw "Service " + j + " in service group " + arr[i] + " is not applicable for the model " + modelName;
                     } else if (serviceType === "instance") {
                         model._constructor.prototype[j] = getProtoTriggerFn(service);
-                    } else if(serviceType === "class") {
+                    } else if (serviceType === "class") {
                         model._constructor[j] = getClassTriggerFn(service);
                     }
                 }
