@@ -306,13 +306,13 @@ yam.model = (function() {
 
     function getProtoTriggerFn(serviceObj) {
         return function() {
-            serviceObj.trigger(this);
+            return serviceObj.trigger(this);
         };
     }
 
     function getClassTriggerFn(serviceObj) {
         return function(dataObj) {
-            serviceObj.trigger(dataObj);
+            return serviceObj.trigger(dataObj);
         };
     }
 

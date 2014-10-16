@@ -83,7 +83,11 @@
         orderline.getOrderLineReport()[0].setFileTextSelected(false);
         var isModelChanged = orderline.$isModelChanged();
         debugger;
-        orderline.save();
+        orderline.save().success(function(data) {
+            debugger;
+        }).error(function(data) {
+            debugger;
+        });
     })();
     </script>
 </head>

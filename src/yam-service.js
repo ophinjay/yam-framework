@@ -134,6 +134,7 @@ yam.service = (function() {
             }
 
             var trigger = function(dataObj) {
+                var defer = new yam.utilities.Defer();
                 var url = this.getPath(dataObj);
                 var queries = this.getQueries(dataObj);
                 if (queries) {
@@ -153,9 +154,13 @@ yam.service = (function() {
                     }
                 }
                 req.open(method, url, this.isAsync());
-                req.onload(function(eventObject) {
-                    // body...
-                })
+                req.onload = function(eventObject) {
+                    if(this.status == 200) {
+                        defer.resolve(this.responseText);
+                    } else {
+                        defer.reject(this.responseText);
+                    }
+                };
                 if (method === "POST") {
                     var parameters = this.getParameters(dataObj);
                     var formData = new FormData();
@@ -166,7 +171,7 @@ yam.service = (function() {
                 } else {
                     req.send();
                 }
-                return new yam.utilities.Defer();
+                return defer;
             };
 
             return {
