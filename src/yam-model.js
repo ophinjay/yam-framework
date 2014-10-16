@@ -13,7 +13,7 @@ yam.model = (function() {
             throw new Error("Please provide a valid string name for the model!!!");
         }
         this.name = inputObj["name"];
-        this.variableMap = inputObj["variableMap"];
+        this.fieldsMap = inputObj["fieldsMap"];
         this.config = inputObj["config"];
         this.userConstructor = inputObj["constructor"];
         this.extraProtoFns = inputObj["protoFns"];
@@ -91,7 +91,7 @@ yam.model = (function() {
 
     function syncServiceToModel(serviceData, modelObj) {
         for (var i in serviceData) {
-            var config = modelObj["_model"]["variableMap"][i];
+            var config = modelObj["_model"]["fieldsMap"][i];
             if (config) {
                 var variableName = config["name"] || config;
                 var setterName = getSetterName(variableName);
@@ -114,7 +114,7 @@ yam.model = (function() {
     }
 
     var createPrototype = function(modelObj, protoObj) {
-        var variableMap = modelObj["variableMap"];
+        var fieldsMap = modelObj["fieldsMap"];
         var extraProtoFns = modelObj["extraProtoFns"];
         protoObj = addAccessors(modelObj, protoObj);
         protoObj["$getData"] = syncModelToService;
@@ -132,9 +132,9 @@ yam.model = (function() {
 
     function addAccessors(modelObj, protoObj) {
         protoObj = protoObj || {};
-        var variableMap = modelObj["variableMap"];
-        for (var i in variableMap) {
-            var config = variableMap[i];
+        var fieldsMap = modelObj["fieldsMap"];
+        for (var i in fieldsMap) {
+            var config = fieldsMap[i];
             var variableName = config["name"] || config;
             var getterName = getGetterName(variableName, config["type"]);
             var setterName = getSetterName(variableName);
@@ -163,7 +163,7 @@ yam.model = (function() {
 
     function syncModelToService(filterMap) {
         var returnData = {};
-        var varMap = this["_model"]["variableMap"];
+        var varMap = this["_model"]["fieldsMap"];
         var filter = filterMap ? getFilterMap(filterMap) : undefined;
         for (var i in varMap) {
             if (!filter || filter[i]) {
@@ -207,7 +207,7 @@ yam.model = (function() {
     function isModelChanged() {
         var isChanged = false;
         var originalData = this.$getOriginalData();
-        var varMap = this["_model"]["variableMap"];
+        var varMap = this["_model"]["fieldsMap"];
         for (var i in varMap) {
             var config = varMap[i];
             var variableName = config["name"] || config;
@@ -265,17 +265,13 @@ yam.model = (function() {
     }
 
     function getGetter(variableName, config) {
-        var beforeGetFn = config["beforeGet"];
         var beforeSyncGetFn = config["beforeGetDataCall"];
         var type = config["type"];
         return function(isCalledWhileSync) {
             var value;
             this.callRegister.push(getGetterName(variableName, type));
             value = this[variableName];
-            if (!isCalledWhileSync && beforeGetFn) {
-                value = beforeGetFn.call(this, value, variableName);
-                !value && (value = this[variableName]);
-            } else if (isCalledWhileSync && beforeSyncGetFn) {
+            if (isCalledWhileSync && beforeSyncGetFn) {
                 value = beforeSyncGetFn.call(this, value, variableName);
             }
             this.callRegister.pop();

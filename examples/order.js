@@ -123,7 +123,7 @@ var OrderLine = (function() {
 
     return yam.model.create({
         "name": "OrderLineModel",
-        "variableMap": variableMap,
+        "fieldsMap": variableMap,
         "protoFns": extraProtoFns,
         "services": "OrderLineService",
         constructor: function(data, orderId) {

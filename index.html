@@ -44,20 +44,17 @@
             <div section="introduction">
                 <h3>Introduction</h3>
                 <p>
-                    There are a number of JavaScript frameworks that eases the task of UI development. However, most of these frameworks have functionalities revolving around the creation of views, wiring views together with event handling and binding these views with data. While the multitude of features supported by these frameworks are sufficient for development of websites, when it comes to single page enterprise applications, the data itself is the most important entity.
+                    There are a number of JavaScript frameworks that eases the task of UI development. However, most of these frameworks have functionalities revolving around the creation of views, wiring views together with event handling and binding these views with data. The multitude of features supported by these frameworks are sufficient for development of websites, where the user rarely updates the data presented to him. But when it comes to enterprise applications, the data itself is the most important entity and changes to this data govern the behaviour of views presented to the user. In this situation, it is desirable to represent page data in a structured format, dividing it into seperate functional entities rather than mere JSON objects. This is what YAMF tries to solve.
                 </p>
                 <p>
-                    Suppose your application has a customers table in the DB. A convenient way of connecting to this DB, in the backend application layer, would be to use a persistence provider like Hibernate and map the entire DB structure as entity classes. Services related to a customer, like retrieving sales orders of the customer, can be implemented as a service class that accepts a customer model instance as its input. YAMF helps a frontend engineer achieve the same structure in JavaScript.
-                </p>
-                <p>
-                    YAMF aims at providing a framework to define data entities, like customers, as JavaScript classes along with their related services. Customer can be registered as a model, which will provide a Customer class that can be used to create instances of customers. Services related to a single customer can be registered as functions on the prototype of this class. Functions that are more suited for the customer class as a whole rather than an individual customer, like fetching all active customers, can be defined as static methods available directly on the Customer class.
+                    Suppose your application has a customers table in the DB. A convenient way of connecting to this DB, in the backend application layer, would be to use a persistence provider like Hibernate and map the entire DB structure as entity classes. Services related to a customer, like retrieving sales orders of the customer, can be implemented as a service class that accepts a customer model instance as its input. YAMF helps a frontend engineer achieve the same structure in JavaScript. Functional entities, like customers, can be defined as JavaScript classes along with their related services. Eg. Customer can be registered as a model, which will provide a Customer class that can be used to create instances of customers. Services related to a single customer can be registered as functions on the prototype of this class. Functions that are more suited for the customer class as a whole rather than an individual customer, like fetching all active customers, can be defined as static methods available directly on the Customer class.
                 </p>
                 <img src="images/intro_example.png" alt="">
             </div>
             <div section="model" class="hide">
                 <h3>Model</h3>
                 <p>
-                    Model is the representation of a functional entity in the application, like Customers. YAMF models help the user to represent the data entity along with all its related functionality as a JavaScript class.
+                    Model is the representation of a functional entity in the application, like Customers. YAMF models help the user to represent the data entity along with its related functionality as a JavaScript class.
                 </p>
                 <h4>Usecase</h4>
                 <p>
@@ -89,7 +86,20 @@
                     </ul>
                 </ol>
                 <p>In the following sections, we'll try to achieve this functionality using YAMF</p>
-                <h4>1. </h4>
+                <h4>1. Creating the model class</h4>
+                <p>
+                    A model class is created by invoking the function <code>yam.model.create()</code> with a configuration object. The configuration object is a JSON object with the following mandatory properties
+                    <ul>
+                        <li><code>name</code> : Every model will be registered with a unique name during initialization. This name has to be provided here.</li>
+                        <li><code>fieldsMap</code> : JSON object in with definitions for every field in the model. We will cover this in detail later.</li>
+                    </ul>
+                    Other than the above mentioned properties there are some other optional properties also which will be dealt with later, as we progress through the usecase.
+                </p>
+                <h5>1.1. <code>fieldsMap</code> property</h5>
+                <p>
+                    <code>fieldsMap</code> should be a JSON object containing in which every model field is defined. The format for this JSON object is shown below
+                    <img src="images/fieldmap.png" alt="">
+                </p>
             </div>
             <div section="services" class="hide">
                 <h3>Services</h3>

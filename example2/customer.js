@@ -34,6 +34,6 @@ var Customer = (function () {
 
     return yam.model.create({
         "name": "Customer",
-        "variableMap": customerConfig
-    });    
+        "fieldsMap": customerConfig
+    });
 })(); 
